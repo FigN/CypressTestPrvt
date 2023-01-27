@@ -4,31 +4,20 @@
 import { formLocators } from '../../locators/evolution'
 
 // Locators
-const loc = {...formLocators, ...{
-    register: '#register',
-    registerError: '#register + ul'
-}};
-
-const validateData = (element: string, errorElement: string, acceptedChars: string[] = []) => {
-    let specialCharacters = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'.split('');
-    let ok: boolean = true;
-    for (let c of specialCharacters) {
-        cy.get(element, {log: false})
-            .clear({log: false})
-            .type('Testing ' + c + ' character', {log: false, delay: 0});
-        let assertion = acceptedChars.includes(c) ? 'not.be.visible' : 'be.visible';
-        cy.get(errorElement, {log: false}).should(assertion);
-        cy.get(element, {log: false}).clear({log: false});
+const loc = {
+    ...formLocators,
+    ...{
+        register: '#register',
+        registerError: '#register + ul'
     }
 };
 
 describe('Costa Rica - Contact Us Form', () => {
     beforeEach(() => {
-        // Url to visit
         cy.visit('https://www.equifax.co.cr/contactenos');
     });
 
-    it('Has all the form fields', () => {
+    it('Has all the specified form fields', () => {
         cy.get(loc.name).should('be.visible');
         cy.get(loc.register).should('be.visible');
         cy.get(loc.lastname).should('be.visible');
@@ -41,35 +30,41 @@ describe('Costa Rica - Contact Us Form', () => {
         cy.get(loc.cancel).should('be.visible');
     });
 
-    it('Should display an error message for all required fields', () => {
+    it('Name field should be required and accept only text and underscores', () => {
         cy.submitForm();
-        cy.get(loc.nameError).should('be.visible');
-        cy.get(loc.registerError).should('be.visible');
-        cy.get(loc.lastnameError).should('be.visible');
-        cy.get(loc.companyError).should('be.visible');
-        cy.get(loc.titleError).should('be.visible');
-        cy.get(loc.emailError).should('be.visible');
-        cy.get(loc.phoneError).should('be.visible');
+        cy.validateRequiredInput(loc.name, loc.nameError);
+        cy.validateSpecialCharactersAcceptance(loc.name, loc.nameError, ['_']);
+        cy.validateNumbersAcceptance(loc.name, loc.nameError, false);
+        cy.validateTextAcceptance(loc.name, loc.nameError, true);
     });
 
-    it('Should accept text and underscores in the Name field', () => {
+    it('Last Name field should be required and accept only text and underscores', () => {
         cy.submitForm();
-        let acceptedCharacters = ['_'];
-        validateData(loc.name, loc.nameError, ['_']);
+        cy.validateRequiredInput(loc.lastname, loc.lastnameError);
+        cy.validateSpecialCharactersAcceptance(loc.lastname, loc.lastnameError, ['_']);
+        cy.validateNumbersAcceptance(loc.lastname, loc.lastnameError, false);
+        cy.validateTextAcceptance(loc.lastname, loc.lastnameError, true);
     });
 
-    it('Should accept text and underscores in the Last Name field', () => {
+    it('Company field should be required and accept only text and underscores', () => {
         cy.submitForm();
-        validateData(loc.lastname, loc.lastnameError, ['_']);
+        cy.validateRequiredInput(loc.company, loc.companyError);
+        cy.validateSpecialCharactersAcceptance(loc.company, loc.companyError, ['_']);
+        cy.validateNumbersAcceptance(loc.company, loc.companyError, false);
+        cy.validateTextAcceptance(loc.company, loc.companyError, true);
     });
 
-    it('Should accept text and underscores in the Company field', () => {
+    it('Title field should be required and accept only text and underscores', () => {
         cy.submitForm();
-        validateData(loc.company, loc.companyError, ['_']);
+        cy.validateRequiredInput(loc.title, loc.titleError);
+        cy.validateSpecialCharactersAcceptance(loc.title, loc.titleError, ['_']);
+        cy.validateNumbersAcceptance(loc.title, loc.titleError, false);
+        cy.validateTextAcceptance(loc.title, loc.titleError, true);
     });
 
-    it('Should accept text and underscores in the Title field', () => {
+    it('Phone field should be required, accept only numbers with a minimum length of 1', () => {
         cy.submitForm();
-        validateData(loc.title, loc.titleError, ['_']);
+        cy.validateRequiredInput(loc.phone, loc.phoneError);
+        cy.validatePhoneInput(loc.phone, loc.phoneError, 1);
     });
 });
